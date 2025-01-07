@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const errorHandler = require('./src/middleware/errorHandler');
 require('dotenv').config();
+const path = require('path');
 
 const app = express();
 
@@ -22,6 +23,14 @@ app.use((req, res) => {
         success: false,
         message: 'Route not found'
     });
+});
+
+// Add this before your routes
+app.use(express.static(path.join(__dirname, 'employee-frontend/dist')));
+
+// Add this after your API routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'employee-frontend/dist/index.html'));
 });
 
 const PORT = process.env.PORT || 4000;

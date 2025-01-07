@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { signup } from '../services/api';
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -22,15 +23,9 @@ export default function Register() {
         age: parseInt(formData.age, 10)
       };
 
-      const response = await fetch('http://localhost:4000/api/employees/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(dataToSend),
-      });
-      const data = await response.json();
+      const response = await signup(dataToSend);
       
-      
-      if (data.success) {
+      if (response.success) {
         setError('');
         toast.success('Registration successful! Redirecting to login...', {
           position: "top-right",
@@ -46,12 +41,13 @@ export default function Register() {
           navigate('/login');
         }, 2000);
       } else {
-        toast.error(data.message);
-        setError(data.message);
+        toast.error(response.message);
+        setError(response.message);
       }
     } catch (err) {
       toast.error('An error occurred. Please try again.');
       setError('An error occurred. Please try again.');
+      console.error('Registration error:', err);
     }
   };
 

@@ -14,7 +14,9 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:4000',
+        target: process.env.NODE_ENV === 'production' 
+          ? 'https://crud-application-a3g2.onrender.com' 
+          : 'http://localhost:4000',
         changeOrigin: true,
         secure: false
       }

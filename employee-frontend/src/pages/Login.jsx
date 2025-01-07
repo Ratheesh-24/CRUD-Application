@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { login } from '../services/api';
 
 export default function Login() {
   const [formData, setFormData] = useState({
@@ -14,22 +15,16 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:4000/api/employees/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-      const data = await response.json();
+      const response = await login({ email, password });
       
-      if (data.success) {
-        login(data.data.token, data.data.employee);
+      if (response.success) {
+        login(response.data.token, response.data.employee);
         navigate('/dashboard');
       } else {
-        setError(data.message);
+        setError(response.message);
       }
-    } catch (err) {
+    } catch (error) {
+      console.error('Login failed:', error);
       setError('Failed to login');
     }
   };

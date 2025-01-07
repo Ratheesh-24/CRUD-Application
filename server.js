@@ -27,9 +27,10 @@ app.get('*', (req, res) => {
 // Error handler
 app.use(errorHandler);
 
-// IMPORTANT: Remove the '0.0.0.0' and just use PORT
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+// Let Render assign its own port
+const PORT = process.env.PORT || 10000;  // Using a higher port number
+
+app.listen(PORT, '0.0.0.0', () => {    // Added 0.0.0.0 to listen on all network interfaces
     console.log(`Server listening on port ${PORT}`);
 });
 

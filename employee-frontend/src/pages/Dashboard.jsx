@@ -96,7 +96,9 @@ export default function Dashboard() {
           </div>
           <button
             onClick={() => setShowForm(true)}
-            className="inline-flex items-center px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-sm hover:shadow-md text-sm font-medium"
+            className="inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 
+            text-white rounded-xl hover:opacity-90 transition-all duration-200 
+            shadow-lg hover:shadow-blue-500/25 text-sm font-medium"
           >
             <PlusIcon className="h-5 w-5 mr-2" />
             New Employee
@@ -169,13 +171,13 @@ export default function Dashboard() {
                           }}
                           className="text-gray-400 hover:text-blue-600 transition-colors p-2 hover:bg-blue-50 rounded-lg"
                         >
-                          <PencilIcon className="h-5 w-5" />
+                          <PencilIcon className="h-5 w-5 transition-transform transform hover:scale-110" />
                         </button>
                         <button
                           onClick={() => handleDelete(employee.id)}
                           className="text-gray-400 hover:text-red-600 transition-colors p-2 hover:bg-red-50 rounded-lg"
                         >
-                          <TrashIcon className="h-5 w-5" />
+                          <TrashIcon className="h-5 w-5 transition-transform transform hover:scale-110" />
                         </button>
                       </div>
                     </td>

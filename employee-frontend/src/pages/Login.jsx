@@ -35,30 +35,33 @@ export default function Login() {
   };
 
   return (
-    <div className="w-screen h-screen bg-blue-50 overflow-y-auto">
-      <div className="container mx-auto min-h-screen flex items-center justify-center py-4">
-        <div className="w-[400px] bg-white/80 backdrop-blur-sm rounded-lg p-5 shadow-lg border border-gray-200/60">
-          <div className="text-center mb-3">
-            <h2 className="text-2xl font-bold text-gray-900">Welcome Back</h2>
-            <p className="mt-1 text-sm text-gray-600">Please sign in to your account</p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4 w-screen overflow-x-hidden">
+      <div className="w-full max-w-md mx-auto">
+        <div className="backdrop-blur-lg bg-white/80 p-8 rounded-2xl shadow-xl border border-white/40">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Welcome Back
+            </h2>
+            <p className="mt-2 text-sm text-gray-600">Sign in to your account</p>
           </div>
 
           {error && (
-            <div className="mb-2 p-2 rounded bg-red-50 border border-red-400 text-red-600 text-sm">
+            <div className="p-4 mb-6 rounded-lg bg-red-50/50 backdrop-blur-sm border border-red-100 text-red-700 text-sm">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-2">
-            {/* Email Input */}
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-gray-700 text-sm font-medium mb-2">
+              <label className="block text-gray-700 text-sm font-semibold mb-2">
                 Email Address
               </label>
               <input
                 type="email"
                 required
-                className="w-full px-4 py-3 rounded-lg bg-white border border-gray-300 text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition duration-200"
+                className="w-full px-4 py-2.5 rounded-xl bg-white/50 border border-gray-200 
+                text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 
+                focus:ring-blue-500/30 focus:border-transparent transition duration-200"
                 placeholder="Enter your email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -82,15 +85,19 @@ export default function Login() {
 
             <button
               type="submit"
-              className="w-full py-3 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 transform transition duration-200 hover:scale-[1.02]"
+              className="w-full px-4 py-2.5 mt-6 bg-gradient-to-r from-blue-600 to-purple-600 
+              text-white rounded-xl hover:opacity-90 transition-all duration-200 
+              shadow-lg hover:shadow-blue-500/25 text-sm font-medium"
             >
               Sign In
             </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <Link to="/register" className="text-gray-600 hover:text-blue-600">
-              Don't have an account? <span className="font-semibold text-blue-600">Sign up</span>
+          <div className="mt-6 text-center text-sm text-gray-600">
+            <Link to="/register" className="hover:text-blue-600 transition-colors duration-200">
+              Don't have an account?{' '}
+              <span className="font-semibold bg-gradient-to-r from-blue-600 to-purple-600 
+              bg-clip-text text-transparent">Sign up</span>
             </Link>
           </div>
         </div>

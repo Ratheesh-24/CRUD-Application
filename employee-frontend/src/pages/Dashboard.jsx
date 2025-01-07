@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FiEdit, FiTrash2, FiPlus } from 'react-icons/fi';
+import { PencilIcon, TrashIcon, PlusIcon } from '@heroicons/react/24/outline';
 import EmployeeForm from '../components/EmployeeForm';
 
 export default function Dashboard() {
@@ -86,72 +86,120 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f172a]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {error && (
-          <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/50 text-red-200">
-            {error}
+    <div className="bg-[#f8fafc] w-screen min-h-screen">
+      <div className="max-w-[1400px] mx-auto p-4 sm:p-6 space-y-6">
+        {/* Page Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Employee Directory</h1>
+            <p className="mt-1 text-sm text-gray-500">Manage your team members and their information</p>
           </div>
-        )}
-        
-        <div className="flex justify-end mb-4">
           <button
             onClick={() => setShowForm(true)}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-sm hover:shadow-md text-sm font-medium"
           >
-            <FiPlus className="h-5 w-5 mr-2" />
-            Add Employee
+            <PlusIcon className="h-5 w-5 mr-2" />
+            New Employee
           </button>
         </div>
 
-        <div className="bg-[#1e293b] shadow-xl rounded-lg overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-700">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mobile</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-700">
-              {employees.map((employee) => (
-                <tr key={employee.id} className="hover:bg-[#2d3748]/50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-200">{employee.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-200">{employee.email}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-200">{employee.mobileNo}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <button
-                      onClick={() => {
-                        setSelectedEmployee(employee);
-                        setShowForm(true);
-                      }}
-                      className="text-blue-400 hover:text-blue-300 mr-4"
-                    >
-                      <FiEdit className="h-5 w-5" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(employee.id)}
-                      className="text-red-400 hover:text-red-300"
-                    >
-                      <FiTrash2 className="h-5 w-5" />
-                    </button>
-                  </td>
+        {/* Error Alert */}
+        {error && (
+          <div className="p-4 rounded-lg bg-red-50 border-l-4 border-red-500 text-red-700 text-sm">
+            {error}
+          </div>
+        )}
+
+        {/* Main Content */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+          {/* Table Header */}
+          <div className="px-6 py-4 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <h2 className="text-lg font-semibold text-gray-900">All Employees</h2>
+                <span className="px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full">
+                  {employees.length} total
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-gray-50">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Employee Details
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider hidden sm:table-cell">
+                    Contact Information
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {employees.map((employee) => (
+                  <tr key={employee.id} className="group hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center">
+                        <div className="h-10 w-10 flex-shrink-0 rounded-full bg-blue-100 flex items-center justify-center">
+                          <span className="text-blue-700 font-medium text-sm">
+                            {employee.name.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="ml-4">
+                          <div className="font-medium text-gray-900">{employee.name}</div>
+                          <div className="text-sm text-gray-500 sm:hidden">{employee.email}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 hidden sm:table-cell">
+                      <div className="text-sm text-gray-900">{employee.email}</div>
+                      <div className="text-sm text-gray-500">{employee.mobileNo}</div>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end space-x-3">
+                        <button
+                          onClick={() => {
+                            setSelectedEmployee(employee);
+                            setShowForm(true);
+                          }}
+                          className="text-gray-400 hover:text-blue-600 transition-colors p-2 hover:bg-blue-50 rounded-lg"
+                        >
+                          <PencilIcon className="h-5 w-5" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(employee.id)}
+                          className="text-gray-400 hover:text-red-600 transition-colors p-2 hover:bg-red-50 rounded-lg"
+                        >
+                          <TrashIcon className="h-5 w-5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
+        {/* Modal */}
         {showForm && (
-          <EmployeeForm
-            employee={selectedEmployee}
-            onSubmit={selectedEmployee ? handleUpdate : handleCreate}
-            onCancel={() => {
-              setShowForm(false);
-              setSelectedEmployee(null);
-            }}
-          />
+          <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-xl shadow-xl w-full max-w-md border border-gray-200">
+              <EmployeeForm
+                employee={selectedEmployee}
+                onSubmit={selectedEmployee ? handleUpdate : handleCreate}
+                onCancel={() => {
+                  setShowForm(false);
+                  setSelectedEmployee(null);
+                }}
+              />
+            </div>
+          </div>
         )}
       </div>
     </div>

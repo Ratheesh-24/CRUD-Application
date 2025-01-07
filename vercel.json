@@ -1,24 +1,11 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "employee-frontend/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "buildCommand": "npm run build",
-        "outputDirectory": "dist"
-      }
-    }
-  ],
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
   "build": {
     "env": {
       "NODE_VERSION": "18"
     }
-  },
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/employee-frontend/dist/index.html"
-    }
-  ]
+  }
 } 

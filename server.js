@@ -14,30 +14,23 @@ app.use(cors());
 const employeeRoutes = require('./src/routes/employeeRoutes');
 app.use('/api/employees', employeeRoutes);
 
-// Error handler
-app.use(errorHandler);
-
-// 404 handler
-app.use((req, res) => {
-    res.status(404).json({
-        success: false,
-        message: 'Route not found'
-    });
-});
-
-// Add this before your routes
+// Serve static files
 app.use(express.static(path.join(__dirname, 'employee-frontend/dist')));
 
-// Add this after your API routes
+// API routes go here
+
+// Catch-all route for SPA
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'employee-frontend/dist/index.html'));
 });
 
-const PORT = process.env.PORT || 4000;
+// Error handler
+app.use(errorHandler);
 
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server is running on port ${PORT}`);
-    console.log('Process env PORT:', process.env.PORT);
+// IMPORTANT: Remove the '0.0.0.0' and just use PORT
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server listening on port ${PORT}`);
 });
 
 // Handle unhandled promise rejections

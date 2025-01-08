@@ -166,17 +166,19 @@ export default function Login() {
             </div>
           </div>
 
-          <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={() => {
-              console.log('Login Failed');
-              toast.error('Google login failed. Please try again.');
-            }}
-            useOneTap
-            flow="implicit"
-            auto_select={false}
-            ux_mode="popup"
-          />
+          <div className="flex justify-center">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => {
+                console.log('Login Failed');
+                toast.error('Google login failed. Please try again.');
+              }}
+              useOneTap
+              flow="implicit"
+              auto_select={false}
+              ux_mode="popup"
+            />
+          </div>
         </div>
 
         <div className="mt-4 text-center text-sm text-gray-600">

@@ -116,4 +116,26 @@ export const deleteEmployee = async (id) => {
   }
 };
 
+export const createEmployee = async (employeeData) => {
+  try {
+    console.log('Create Employee Request Data:', employeeData);
+    const response = await api.post('/employees', employeeData);
+    console.log('Create Employee Response:', response.data);
+    return {
+      success: true,
+      data: response.data
+    };
+  } catch (error) {
+    console.error('Create employee error:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
+    });
+    return {
+      success: false,
+      message: error.response?.data?.message || 'Failed to create employee'
+    };
+  }
+};
+
 export default api; 

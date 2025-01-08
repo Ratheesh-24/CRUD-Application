@@ -18,36 +18,33 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      console.log('Sending registration data:', formData);
+
       const dataToSend = {
         ...formData,
         age: parseInt(formData.age, 10)
       };
 
+      console.log('Transformed registration data:', dataToSend);
+
       const response = await signup(dataToSend);
       
+      console.log('Registration response:', response);
+
       if (response.success) {
         setError('');
-        toast.success('Registration successful! Redirecting to login...', {
-          position: "top-right",
-          autoClose: 2000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
-        
-        // Navigate after a short delay to show the toast
+        toast.success('Registration successful! Redirecting to login...');
         setTimeout(() => {
           navigate('/login');
         }, 2000);
       } else {
-        toast.error(response.message);
-        setError(response.message);
+        toast.error(response.message || 'Registration failed');
+        setError(response.message || 'Registration failed');
       }
     } catch (err) {
+      console.error('Registration error:', err);
       toast.error('An error occurred. Please try again.');
       setError('An error occurred. Please try again.');
-      console.error('Registration error:', err);
     }
   };
 

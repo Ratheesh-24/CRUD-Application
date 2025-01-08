@@ -56,9 +56,9 @@ export const signup = async (userData) => {
 
 export const login = async (credentials) => {
   try {
-    console.log('Login Request Data:', credentials); // Log request data
+    console.log('Login Request Data:', credentials);
     const response = await api.post('/employees/login', credentials);
-    console.log('Login Response:', response.data); // Log response
+    console.log('Login Response:', response.data);
     return response.data;
   } catch (error) {
     console.error('Login error:', {

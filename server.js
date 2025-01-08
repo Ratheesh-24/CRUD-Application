@@ -15,6 +15,11 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
+app.use((req, res, next) => {
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+  next();
+});
+
 // Routes
 const employeeRoutes = require('./src/routes/employeeRoutes');
 app.use('/api/employees', employeeRoutes);

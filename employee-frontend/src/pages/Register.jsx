@@ -31,7 +31,7 @@ export default function Register() {
       
       console.log('Registration response:', response);
 
-      if (response.success) {
+      if (response.token) {
         setError('');
         toast.success('Registration successful! Redirecting to login...');
         setTimeout(() => {

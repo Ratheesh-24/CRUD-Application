@@ -38,19 +38,17 @@ api.interceptors.response.use(
 // API functions
 export const signup = async (userData) => {
   try {
-    console.log('Signup Request Data:', userData); // Log request data
+    console.log('Signup Request Data:', userData);
     const response = await api.post('/employees/signup', userData);
-    console.log('Signup Response:', response.data); // Log response
-    return response.data;
+    console.log('Signup Response:', response.data);
+    return response.data; // This already contains { token, employee }
   } catch (error) {
     console.error('Signup error:', {
       message: error.message,
       response: error.response?.data,
       status: error.response?.status
     });
-    // Return a structured error response
     return {
-      success: false,
       message: error.response?.data?.message || 'Registration failed. Please try again.'
     };
   }

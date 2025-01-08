@@ -1,128 +1,74 @@
-import API_BASE_URL from '../config/api';
+import axios from 'axios';
 
-// Signup
-const signup = async (userData) => {
+// Define the base URL for your API
+const BASE_URL = 'https://crud-application-a3g2.onrender.com/api'; // Add /api here
+
+// Create axios instance with base configuration
+const api = axios.create({
+  baseURL: BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Add token to requests if available
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// API functions
+export const signup = async (userData) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/employees/signup`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(userData),
-      credentials: 'include',
-    });
-    
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    }
-    
-    return await response.json();
+    const response = await api.post('/employees/signup', userData);
+    return response.data;
   } catch (error) {
     console.error('Signup error:', error);
     throw error;
   }
 };
 
-// Login
-const login = async (credentials) => {
+export const login = async (credentials) => {
   try {
-    console.log('Making login request to:', `${API_BASE_URL}/employees/login`);
-    
-    const response = await fetch(`${API_BASE_URL}/employees/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(credentials),
-      credentials: 'include',
-    });
-
-    console.log('Raw response:', response);
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Login failed');
-    }
-
-    const data = await response.json();
-    console.log('Login response data:', data);
-    
-    return data;
+    const response = await api.post('/employees/login', credentials);
+    return response.data;
   } catch (error) {
     console.error('Login error:', error);
     throw error;
   }
 };
 
-// Get all employees
-const getAllEmployees = async () => {
+export const getAllEmployees = async () => {
   try {
-    const token = localStorage.getItem('token');
-    const response = await fetch(`${API_BASE_URL}/employees`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch employees');
-    }
-
-    return await response.json();
+    const response = await api.get('/employees');
+    return response.data;
   } catch (error) {
-    console.error('Get employees error:', error);
+    console.error('Fetch employees error:', error);
     throw error;
   }
 };
 
-// Update employee
-const updateEmployee = async (id, employeeData) => {
+export const updateEmployee = async (id, employeeData) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/employees/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(employeeData),
-      credentials: 'include',
-    });
-
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    }
-
-    return await response.json();
+    const response = await api.put(`/employees/${id}`, employeeData);
+    return response.data;
   } catch (error) {
     console.error('Update employee error:', error);
     throw error;
   }
 };
 
-// Delete employee
-const deleteEmployee = async (id) => {
+export const deleteEmployee = async (id) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/employees/${id}`, {
-      method: 'DELETE',
-      credentials: 'include',
-    });
-
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    }
-
-    return await response.json();
+    const response = await api.delete(`/employees/${id}`);
+    return response.data;
   } catch (error) {
     console.error('Delete employee error:', error);
     throw error;
   }
 };
 
-export {
-  signup,
-  login,
-  getAllEmployees,
-  updateEmployee,
-  deleteEmployee,
-}; 
+export default api; 

@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { PencilIcon, TrashIcon, PlusIcon } from '@heroicons/react/24/outline';
 import EmployeeForm from '../components/EmployeeForm';
+import Navbar from '../components/Navbar';
+import { getAllEmployees, deleteEmployee, updateEmployee } from '../services/api';
+import { toast } from 'react-toastify';
 
 export default function Dashboard() {
   const [employees, setEmployees] = useState([]);
@@ -10,16 +13,18 @@ export default function Dashboard() {
 
   const fetchEmployees = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/employees');
-      const data = await response.json();
-      if (data.success) {
-        setEmployees(data.data);
+      const response = await getAllEmployees();
+      if (response && response.data) {
+        setEmployees(response.data);
         setError('');
       } else {
-        setError(data.message);
+        setError('No data received from server');
+        toast.error('Failed to fetch employees');
       }
     } catch (err) {
+      console.error('Fetch error:', err);
       setError('Failed to fetch employees');
+      toast.error('Failed to fetch employees');
     }
   };
 
@@ -27,66 +32,26 @@ export default function Dashboard() {
     fetchEmployees();
   }, []);
 
-  const handleCreate = async (formData) => {
-    try {
-      const response = await fetch('http://localhost:4000/api/employees', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-      const data = await response.json();
-      if (data.success) {
-        fetchEmployees();
-        setShowForm(false);
-      } else {
-        setError(data.message);
-      }
-    } catch (err) {
-      setError('Failed to create employee');
-    }
-  };
-
-  const handleUpdate = async (formData) => {
-    try {
-      const response = await fetch(`http://localhost:4000/api/employees/${selectedEmployee.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-      const data = await response.json();
-      
-      if (data.success) {
-        await fetchEmployees();
-        setShowForm(false);
-        setSelectedEmployee(null);
-      } else {
-        setError(data.message);
-      }
-    } catch (err) {
-      setError('Failed to update employee');
-    }
-  };
-
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this employee?')) {
       try {
-        const response = await fetch(`http://localhost:4000/api/employees/${id}`, {
-          method: 'DELETE',
-        });
-        const data = await response.json();
-        if (data.success) {
-          fetchEmployees();
+        const response = await deleteEmployee(id);
+        if (response.success) {
+          toast.success('Employee deleted successfully');
+          await fetchEmployees();
         } else {
-          setError(data.message);
+          toast.error(response.message || 'Failed to delete employee');
         }
       } catch (err) {
-        setError('Failed to delete employee');
+        console.error('Delete error:', err);
+        toast.error('Failed to delete employee');
       }
     }
   };
 
   return (
     <div className="bg-[#f8fafc] w-screen min-h-screen">
+      <Navbar />
       <div className="max-w-[1400px] mx-auto p-4 sm:p-6 space-y-6">
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -95,7 +60,10 @@ export default function Dashboard() {
             <p className="mt-1 text-sm text-gray-500">Manage your team members and their information</p>
           </div>
           <button
-            onClick={() => setShowForm(true)}
+            onClick={() => {
+              setSelectedEmployee(null);
+              setShowForm(true);
+            }}
             className="inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 
             text-white rounded-xl hover:opacity-90 transition-all duration-200 
             shadow-lg hover:shadow-blue-500/25 text-sm font-medium"
@@ -188,20 +156,35 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Modal */}
+        {/* Employee Form Modal */}
         {showForm && (
-          <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-xl w-full max-w-md border border-gray-200">
-              <EmployeeForm
-                employee={selectedEmployee}
-                onSubmit={selectedEmployee ? handleUpdate : handleCreate}
-                onCancel={() => {
-                  setShowForm(false);
-                  setSelectedEmployee(null);
-                }}
-              />
-            </div>
-          </div>
+          <EmployeeForm
+            employee={selectedEmployee}
+            onClose={() => {
+              setShowForm(false);
+              setSelectedEmployee(null);
+            }}
+            onSubmit={async (formData) => {
+              try {
+                if (selectedEmployee) {
+                  const response = await updateEmployee(selectedEmployee.id, formData);
+                  if (response.success) {
+                    toast.success('Employee updated successfully');
+                  } else {
+                    toast.error(response.message || 'Failed to update employee');
+                  }
+                } else {
+                  toast.success('Employee created successfully');
+                }
+                await fetchEmployees();
+                setShowForm(false);
+                setSelectedEmployee(null);
+              } catch (err) {
+                console.error('Form submission error:', err);
+                toast.error('Failed to save employee');
+              }
+            }}
+          />
         )}
       </div>
     </div>

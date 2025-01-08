@@ -1,41 +1,66 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { login as loginAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { login } from '../services/api';
 
 export default function Login() {
+  const navigate = useNavigate();
+  const { login: authLogin } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
-    password: '',
+    password: ''
   });
   const [error, setError] = useState('');
-  const navigate = useNavigate();
-  const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await login({ email, password });
-      
-      if (response.success) {
-        login(response.data.token, response.data.employee);
+      const response = await loginAPI(formData);
+      console.log('Login response:', response);
+
+      // Check for success and data structure
+      if (response.success && response.data) {
+        // Store the token from the correct path
+        const token = response.data.token;
+        const employeeData = response.data.employee;
+
+        localStorage.setItem('token', token);
+        
+        // Update auth context with employee data
+        authLogin({
+          ...employeeData,
+          token
+        });
+
+        toast.success('Login successful!');
         navigate('/dashboard');
       } else {
-        setError(response.message);
+        const errorMessage = response?.message || 'Login failed. Please try again.';
+        setError(errorMessage);
+        toast.error(errorMessage);
       }
     } catch (error) {
       console.error('Login failed:', error);
-      setError('Failed to login');
+      setError('Login failed. Please try again.');
+      toast.error('Login failed. Please try again.');
     }
+  };
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
   };
 
   return (
     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className="w-full max-w-md bg-white/80 backdrop-blur-lg rounded-2xl p-6 shadow-xl border border-white/40">
         <div className="text-center mb-6">
-          <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Login to your account
-          </h3>
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Sign in to your account
+          </h2>
         </div>
 
         {error && (
@@ -47,18 +72,22 @@ export default function Login() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <input
+              id="email"
+              name="email"
               type="email"
               required
               className="w-full px-4 py-2.5 rounded-xl bg-white/50 border border-gray-200 
               text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 
               focus:ring-blue-500/30 focus:border-transparent transition duration-200"
-              placeholder="Email"
+              placeholder="Email address"
               value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              onChange={handleChange}
             />
           </div>
           <div>
             <input
+              id="password"
+              name="password"
               type="password"
               required
               className="w-full px-4 py-2.5 rounded-xl bg-white/50 border border-gray-200 
@@ -66,7 +95,7 @@ export default function Login() {
               focus:ring-blue-500/30 focus:border-transparent transition duration-200"
               placeholder="Password"
               value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              onChange={handleChange}
             />
           </div>
 
@@ -76,7 +105,7 @@ export default function Login() {
             text-white rounded-xl hover:opacity-90 transition-all duration-200 
             shadow-lg hover:shadow-blue-500/25 text-sm"
           >
-            Sign In
+            Sign in
           </button>
         </form>
 

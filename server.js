@@ -32,10 +32,15 @@ app.get('*', (req, res) => {
 // Error handler
 app.use(errorHandler);
 
-// Let Render assign its own port
-const PORT = process.env.PORT || 10000;  // Using a higher port number
+// Try these options one at a time:
 
-app.listen(PORT, '0.0.0.0', () => {    // Added 0.0.0.0 to listen on all network interfaces
+// Option 1: Use a higher port number
+const PORT = process.env.PORT || 10000;
+
+// Option 2: Remove the semicolon if it exists in your port number
+// const PORT = parseInt(process.env.PORT || '3000', 10);
+
+app.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
 });
 

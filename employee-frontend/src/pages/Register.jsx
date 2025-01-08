@@ -108,6 +108,19 @@ export default function Register() {
 
           <div>
             <input
+              type="number"
+              required
+              className="w-full px-4 py-2.5 rounded-xl bg-white/50 border border-gray-200 
+              text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 
+              focus:ring-blue-500/30 focus:border-transparent transition duration-200"
+              placeholder="Age"
+              value={formData.age}
+              onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <input
               type="tel"
               required
               className="w-full px-4 py-2.5 rounded-xl bg-white/50 border border-gray-200 

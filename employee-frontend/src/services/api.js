@@ -1,4 +1,4 @@
-import API_BASE_URL from '../config/api.js';
+import API_BASE_URL from '../config/api';
 
 // Signup
 const signup = async (userData) => {
@@ -26,6 +26,8 @@ const signup = async (userData) => {
 // Login
 const login = async (credentials) => {
   try {
+    console.log('Making login request to:', `${API_BASE_URL}/employees/login`);
+    
     const response = await fetch(`${API_BASE_URL}/employees/login`, {
       method: 'POST',
       headers: {
@@ -35,11 +37,17 @@ const login = async (credentials) => {
       credentials: 'include',
     });
 
+    console.log('Raw response:', response);
+
     if (!response.ok) {
-      throw new Error('Network response was not ok');
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Login failed');
     }
 
-    return await response.json();
+    const data = await response.json();
+    console.log('Login response data:', data);
+    
+    return data;
   } catch (error) {
     console.error('Login error:', error);
     throw error;
@@ -49,12 +57,17 @@ const login = async (credentials) => {
 // Get all employees
 const getAllEmployees = async () => {
   try {
+    const token = localStorage.getItem('token');
     const response = await fetch(`${API_BASE_URL}/employees`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
       credentials: 'include',
     });
 
     if (!response.ok) {
-      throw new Error('Network response was not ok');
+      throw new Error('Failed to fetch employees');
     }
 
     return await response.json();

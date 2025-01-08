@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-export default function EmployeeForm({ employee, onSubmit, onCancel }) {
+export default function EmployeeForm({ employee, onSubmit, onClose }) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -85,7 +85,7 @@ export default function EmployeeForm({ employee, onSubmit, onCancel }) {
           <div className="flex justify-end space-x-3 mt-6">
             <button
               type="button"
-              onClick={onCancel}
+              onClick={onClose}
               className="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors text-sm"
             >
               Cancel

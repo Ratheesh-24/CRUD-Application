@@ -3,6 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { login as loginAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { GoogleLogin } from '@react-oauth/google';
+import { jwtDecode } from "jwt-decode";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -53,6 +55,51 @@ export default function Login() {
       [e.target.name]: e.target.value
     });
   };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      const decoded = jwtDecode(credentialResponse.credential);
+      
+      // Send the token to your backend
+      const response = await loginAPI({
+        googleToken: credentialResponse.credential,
+        email: decoded.email
+      });
+
+      if (response.success && response.data) {
+        const token = response.data.token;
+        const employeeData = response.data.employee;
+
+        localStorage.setItem('token', token);
+        authLogin({
+          ...employeeData,
+          token
+        });
+
+        toast.success('Login successful!');
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      console.error('Google login failed:', error);
+      toast.error('Google login failed. Please try again.');
+    }
+  };
+
+  // Add check for missing Google Client ID
+  if (!import.meta.env.VITE_GOOGLE_CLIENT_ID) {
+    console.error('Google Client ID is not configured');
+    return (
+      <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="w-full max-w-md bg-white/80 backdrop-blur-lg rounded-2xl p-6 shadow-xl border border-white/40">
+          <div className="text-red-600 text-center">
+            <h3 className="font-bold mb-2">Configuration Error</h3>
+            <p>Google OAuth is not configured properly.</p>
+            <p className="text-sm mt-2">Please check your environment variables and ensure VITE_GOOGLE_CLIENT_ID is set.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
@@ -108,6 +155,29 @@ export default function Login() {
             Sign in
           </button>
         </form>
+
+        <div className="mt-4 text-center">
+          <div className="relative mb-4">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white/80 text-gray-500">Or continue with</span>
+            </div>
+          </div>
+
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => {
+              console.log('Login Failed');
+              toast.error('Google login failed. Please try again.');
+            }}
+            useOneTap
+            flow="implicit"
+            auto_select={false}
+            ux_mode="popup"
+          />
+        </div>
 
         <div className="mt-4 text-center text-sm text-gray-600">
           <Link to="/register" className="hover:text-blue-600 transition-colors duration-200">

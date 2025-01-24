@@ -7,6 +7,7 @@ const {
     deleteEmployee,
     login,
     signup,
+    exportEmployees
 } = require('../controllers/employeeController');
 
 const router = express.Router();
@@ -15,9 +16,9 @@ const router = express.Router();
 router.post('/login', login);
 router.post('/signup', signup);
 
-// Protected routes
 router.post('/', createEmployee);
 router.get('/', getEmployees);
+router.get('/export', exportEmployees); // New export route
 router.get('/:id', getEmployeeById);
 router.put('/:id', updateEmployee);
 router.delete('/:id', deleteEmployee);

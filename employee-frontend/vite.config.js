@@ -16,7 +16,7 @@ export default defineConfig({
       '/api': {
         target: process.env.NODE_ENV === 'production' 
           ? 'https://crud-application-a3g2.onrender.com' 
-          : 'http://localhost:4000',
+          : 'http://localhost:10000',
         changeOrigin: true,
         secure: false
       }

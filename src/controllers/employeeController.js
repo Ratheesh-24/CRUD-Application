@@ -1,6 +1,7 @@
 const {PrismaClient} =require("@prisma/client");
 const bcrypt = require("bcryptjs");
 const jwt =require("jsonwebtoken");
+const json2csv = require('json2csv').parse;
 
 const prisma = new PrismaClient();
 
@@ -10,54 +11,225 @@ const generateToken = (id)=>{
 
 //Get all the Employees
 const getEmployees=async(req,res)=>{
-    try{
-      const employees = await prisma.employee.findMany();
-      res.status(200).json({
-        success: true,
-        data: employees
-      });
-    }catch(error){
-        res.status(500).json({
+    try {
+        const {
+            page = 1,
+            limit = 6,
+            sortBy = 'name',
+            sortOrder = 'asc',
+            search = '',
+            filterBy = 'all'
+        } = req.query;
+
+        // Convert page and limit to numbers
+        const pageNum = parseInt(page);
+        const limitNum = parseInt(limit);
+        const skip = (pageNum - 1) * limitNum;
+
+        // Build search query
+        let searchQuery = {};
+        
+        if (search) {
+            searchQuery = {
+                OR: [
+                    { name: { contains: search, mode: 'insensitive' } },
+                    { email: { contains: search, mode: 'insensitive' } },
+                    { mobileNo: { contains: search, mode: 'insensitive' } }
+                ]
+            };
+        }
+
+        // Build filter query
+        let filterQuery = {};
+        switch (filterBy) {
+            case 'recent':
+                filterQuery = {
+                    orderBy: {
+                        createdAt: 'desc'
+                    }
+                };
+                break;
+            case 'oldest':
+                filterQuery = {
+                    orderBy: {
+                        createdAt: 'asc'
+                    }
+                };
+                break;
+            case 'name':
+                filterQuery = {
+                    orderBy: {
+                        name: sortOrder
+                    }
+                };
+                break;
+            case 'email':
+                filterQuery = {
+                    orderBy: {
+                        email: sortOrder
+                    }
+                };
+                break;
+            default:
+                filterQuery = {
+                    orderBy: {
+                        [sortBy]: sortOrder
+                    }
+                };
+        }
+
+        // Combine queries
+        const query = {
+            where: searchQuery,
+            ...filterQuery,
+            skip,
+            take: limitNum
+        };
+
+        // Get total count
+        const total = await prisma.employee.count({
+            where: searchQuery
+        });
+
+        // Get filtered and paginated results
+        const employees = await prisma.employee.findMany(query);
+
+        // Calculate total pages
+        const totalPages = Math.ceil(total / limitNum);
+
+        return res.status(200).json({
+            success: true,
+            data: {
+                employees,
+                pagination: {
+                    total,
+                    pages: totalPages,
+                    currentPage: pageNum,
+                    limit: limitNum
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching employees:', error);
+        return res.status(500).json({
             success: false,
-            message: error.message
+            message: 'Error fetching employees',
+            error: error.message
         });
     }
-}
+};
 
 //Get Employee by ID
-const getEmployeeById=async(req,res)=>{
-    const {id}=req.params;
-    try{
-            const employee =await prisma.employee.findUnique({
-            where:{id:parseInt(id)},
+const getEmployeeById = async (req, res) => {
+    const { id } = req.params;
+    
+    try {
+        // Convert id to integer since Prisma expects an integer for ID
+        const employeeId = parseInt(id, 10);
+
+        // Validate if id is a valid number
+        if (isNaN(employeeId)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid employee ID'
+            });
+        }
+
+        const employee = await prisma.employee.findUnique({
+            where: {
+                id: employeeId
+            }
         });
-           if(!employee)return res.status(404).json({error:"Employee not found"})
-            res.status(200).json(employee);
-    }catch(error){
-        res.status(500).json({error :error.message});
+
+        if (!employee) {
+            return res.status(404).json({
+                success: false,
+                message: 'Employee not found'
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            data: employee
+        });
+    } catch (error) {
+        console.error('Error fetching employee:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Error fetching employee',
+            error: error.message
+        });
     }
 };
 
 //Update Employee 
 
 const updateEmployee = async (req, res) => {
-    const { id } = req.params;
-    const { name, mobileNo, email } = req.body;
     try {
-        const updatedEmployee = await prisma.employee.update({
-            where: { id: parseInt(id) },
-            data: { name, mobileNo, email },
+        const { id } = req.params;
+        const { name, email, mobileNo } = req.body;
+
+        // Validate required fields
+        if (!name || !email || !mobileNo) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please provide all required fields'
+            });
+        }
+
+        // Convert id to number
+        const employeeId = parseInt(id);
+
+        // Check if employee exists
+        const existingEmployee = await prisma.employee.findUnique({
+            where: { id: employeeId }
         });
-        
-        res.status(200).json({
+
+        if (!existingEmployee) {
+            return res.status(404).json({
+                success: false,
+                message: 'Employee not found'
+            });
+        }
+
+        // Check if email is taken by another employee
+        const emailCheck = await prisma.employee.findFirst({
+            where: {
+                email,
+                NOT: {
+                    id: employeeId
+                }
+            }
+        });
+
+        if (emailCheck) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email is already taken by another employee'
+            });
+        }
+
+        // Update employee
+        const updatedEmployee = await prisma.employee.update({
+            where: { id: employeeId },
+            data: {
+                name,
+                email,
+                mobileNo
+            }
+        });
+
+        return res.status(200).json({
             success: true,
-            data: updatedEmployee,
-            message: 'Employee updated successfully'
+            message: 'Employee updated successfully',
+            data: updatedEmployee
         });
     } catch (error) {
-        res.status(400).json({ 
+        console.error('Error updating employee:', error);
+        return res.status(500).json({
             success: false,
-            message: error.message 
+            message: 'Error updating employee',
+            error: error.message
         });
     }
 };
@@ -65,33 +237,36 @@ const updateEmployee = async (req, res) => {
 //Delete Employee
 
 const deleteEmployee = async (req, res) => {
-    const { id } = req.params;
-
     try {
-        // Find the employee first to check if they exist
-        const employee = await prisma.employee.findUnique({ where: { id: parseInt(id) } });
+        const { id } = req.params;
+        const employeeId = parseInt(id);
 
-        if (!employee) {
-            // If the employee does not exist, return a 404 Not Found response
+        // Check if employee exists
+        const existingEmployee = await prisma.employee.findUnique({
+            where: { id: employeeId }
+        });
+
+        if (!existingEmployee) {
             return res.status(404).json({
                 success: false,
                 message: 'Employee not found'
             });
         }
 
-        // Proceed with the deletion if the employee exists
-        await prisma.employee.delete({ where: { id: parseInt(id) } });
+        // Delete employee
+        await prisma.employee.delete({
+            where: { id: employeeId }
+        });
 
-        // Return a success message
         return res.status(200).json({
             success: true,
             message: 'Employee deleted successfully'
         });
     } catch (error) {
-        // Handle any errors that may occur during the operation
+        console.error('Error deleting employee:', error);
         return res.status(500).json({
             success: false,
-            message: 'An error occurred while deleting the employee',
+            message: 'Error deleting employee',
             error: error.message
         });
     }
@@ -167,43 +342,90 @@ const validateEmployeeInput = (data) => {
 // Modified createEmployee function
 const createEmployee = async (req, res) => {
     try {
-        validateEmployeeInput(req.body);
-        const { name, mobileNo, email } = req.body;
-        
-        const existingEmployee = await prisma.employee.findFirst({
-            where: {
-                OR: [
-                    { email },
-                    { mobileNo }
-                ]
-            }
+        const { name, email, mobileNo } = req.body;
+
+        // Validate required fields
+        if (!name || !email || !mobileNo) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please provide all required fields'
+            });
+        }
+
+        // Check if employee with same email exists
+        const existingEmployee = await prisma.employee.findUnique({
+            where: { email }
         });
 
         if (existingEmployee) {
             return res.status(400).json({
                 success: false,
-                message: 'Email or mobile number already exists'
+                message: 'Employee with this email already exists'
             });
         }
 
-        // Create employee without password
+        // Create new employee without password
         const newEmployee = await prisma.employee.create({
-            data: { 
-                name, 
-                mobileNo, 
+            data: {
+                name,
                 email,
-                password: '' // or you could set a default password here if needed
+                mobileNo
             }
         });
 
-        res.status(201).json({
+        return res.status(201).json({
             success: true,
+            message: 'Employee created successfully',
             data: newEmployee
         });
     } catch (error) {
-        res.status(400).json({
+        console.error('Error creating employee:', error);
+        return res.status(500).json({
             success: false,
-            message: error.message
+            message: 'Error creating employee',
+            error: error.message
+        });
+    }
+};
+
+// Add export functionality
+const exportEmployees = async (req, res) => {
+    try {
+        // Fetch all employees
+        const employees = await prisma.employee.findMany();
+
+        if (!employees || employees.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'No employees found to export'
+            });
+        }
+
+        try {
+            // Define fields for CSV
+            const fields = ['name', 'email', 'mobileNo'];
+            const opts = { fields };
+
+            // Convert to CSV
+            const csvString = json2csv(employees, opts);
+
+            // Set response headers for CSV download
+            res.setHeader('Content-Type', 'text/csv');
+            res.setHeader('Content-Disposition', `attachment; filename=employees-${Date.now()}.csv`);
+
+            return res.send(csvString);
+        } catch (csvError) {
+            console.error('CSV Generation Error:', csvError);
+            return res.status(500).json({
+                success: false,
+                message: 'Error generating CSV file'
+            });
+        }
+    } catch (error) {
+        console.error('Export Error:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Error exporting employees'
         });
     }
 };
@@ -215,5 +437,6 @@ module.exports ={
     updateEmployee,
     deleteEmployee,
     login,
-    signup
+    signup,
+    exportEmployees
 }

@@ -9,7 +9,11 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(cors({
-  origin: ['https://crud-application-a3g2.onrender.com', 'http://localhost:5173'],
+  origin: [
+    'http://localhost:5173', // Development
+    'http://localhost:10000', // Local production build
+    'https://crud-application-a3g2.onrender.com' // Production
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']

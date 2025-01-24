@@ -1,5 +1,8 @@
 import axios from 'axios';
 
+// Get the API URL from environment variables
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:10000/api';
+
 // Define the base URL for your API
 const BASE_URL = 'https://crud-application-a3g2.onrender.com/api'; // Add /api here
 
@@ -73,69 +76,127 @@ export const login = async (credentials) => {
   }
 };
 
-export const getAllEmployees = async () => {
-  try {
-    const response = await api.get('/employees');
-    return response.data;
-  } catch (error) {
-    console.error('Fetch employees error:', {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status
-    });
-    throw error;
-  }
+export const getAllEmployees = async (params = {}) => {
+    try {
+        const queryString = new URLSearchParams({
+            page: params.page || 1,
+            limit: params.limit || 6,
+            sortBy: params.sortBy || 'name',
+            sortOrder: params.sortOrder || 'asc',
+            search: params.search || '',
+            filterBy: params.filterBy || 'all'
+        }).toString();
+
+        const response = await axios.get(
+            `${API_URL}/employees?${queryString}`,
+            {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            }
+        );
+
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching employees:', error);
+        throw error;
+    }
 };
 
 export const updateEmployee = async (id, employeeData) => {
-  try {
-    console.log('Update Employee Data:', { id, employeeData }); // Log request data
-    const response = await api.put(`/employees/${id}`, employeeData);
-    return response.data;
-  } catch (error) {
-    console.error('Update employee error:', {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status
-    });
-    throw error;
-  }
+    try {
+        // Make sure we're using the local development URL
+        const response = await axios.put(
+            `${API_URL}/employees/${id}`,
+            employeeData,
+            {
+                headers: { 
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+
+        console.log('Update response:', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error updating employee:', error);
+        throw error.response?.data || error;
+    }
 };
 
 export const deleteEmployee = async (id) => {
-  try {
-    const response = await api.delete(`/employees/${id}`);
-    return response.data;
-  } catch (error) {
-    console.error('Delete employee error:', {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status
-    });
-    throw error;
-  }
+    try {
+        const response = await axios.delete(
+            `${API_URL}/employees/${id}`,
+            {
+                headers: { 
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                }
+            }
+        );
+
+        console.log('Delete response:', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error deleting employee:', error);
+        throw error.response?.data || error;
+    }
 };
 
 export const createEmployee = async (employeeData) => {
   try {
-    console.log('Create Employee Request Data:', employeeData);
-    const response = await api.post('/employees', employeeData);
-    console.log('Create Employee Response:', response.data);
-    return {
-      success: true,
-      data: response.data
-    };
+    // Only send required fields
+    const { name, email, mobileNo } = employeeData;
+    
+    const response = await axios.post(
+      `${API_URL}/employees`,
+      { name, email, mobileNo },
+      {
+        headers: { 
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    console.log('Create employee response:', response.data);
+    return response.data;
   } catch (error) {
-    console.error('Create employee error:', {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status
-    });
-    return {
-      success: false,
-      message: error.response?.data?.message || 'Failed to create employee'
-    };
+    console.error('Error creating employee:', error);
+    throw error.response?.data || error;
   }
+};
+
+export const exportEmployeesCSV = async () => {
+    try {
+        console.log('Using API URL:', API_URL); // Debug log
+        const response = await axios.get(
+            `${API_URL}/employees/export`,
+            {
+                headers: { 
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
+                responseType: 'blob'
+            }
+        );
+
+        // Check if the response is CSV
+        const contentType = response.headers['content-type'];
+        if (contentType && contentType.includes('text/csv')) {
+            return response.data;
+        }
+
+        // If response is not CSV, it's probably an error
+        const textResponse = await response.data.text();
+        try {
+            const errorData = JSON.parse(textResponse);
+            throw new Error(errorData.message || 'Export failed');
+        } catch (e) {
+            throw new Error('Failed to export employees');
+        }
+    } catch (error) {
+        console.error('Export error:', error);
+        throw error;
+    }
 };
 
 export default api; 

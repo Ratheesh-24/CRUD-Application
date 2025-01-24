@@ -52,7 +52,7 @@ export default function Register() {
     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className="w-full max-w-md bg-white/80 backdrop-blur-lg rounded-2xl p-6 shadow-xl border border-white/40">
         <div className="text-center mb-6">
-          <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <h3 className="text-2xl font-bold bg-blue-600  bg-clip-text text-transparent">
             Create Account
           </h3>
         </div>
@@ -131,7 +131,7 @@ export default function Register() {
 
           <button
             type="submit"
-            className="w-full px-4 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 
+            className="w-full px-4 py-2.5 bg-blue-800  
             text-white rounded-xl hover:opacity-90 transition-all duration-200 
             shadow-lg hover:shadow-blue-500/25 text-sm"
           >

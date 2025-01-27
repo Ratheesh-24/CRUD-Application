@@ -10,9 +10,9 @@ const app = express();
 app.use(express.json());
 app.use(cors({
   origin: [
-    'http://localhost:5173', // Development
-    'http://localhost:10000', // Local production build
-    'https://crud-application-a3g2.onrender.com' // Production
+    'http://localhost:5173',    // Vite dev server
+    'http://localhost:10000',   // Production build
+    'https://crud-application-a3g2.onrender.com' // Production URL
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -26,7 +26,12 @@ app.use((req, res, next) => {
 
 // Routes
 const employeeRoutes = require('./src/routes/employeeRoutes');
+const timesheetRoutes = require('./src/routes/timesheetRoutes');
+const profileRoutes = require('./src/routes/profileRoutes');
+
+app.use('/api/timesheets', timesheetRoutes);
 app.use('/api/employees', employeeRoutes);
+app.use('/api/profile', profileRoutes);
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'employee-frontend/dist')));
@@ -39,7 +44,13 @@ app.get('*', (req, res) => {
 });
 
 // Error handler
-app.use(errorHandler);
+app.use((err, req, res, next) => {
+    console.error('Server Error:', err);
+    res.status(500).json({
+        message: 'Internal Server Error',
+        error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+});
 
 // Try these options one at a time:
 

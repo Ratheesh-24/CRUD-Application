@@ -2,7 +2,6 @@ import { useNavigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import AppRoutes from './routes';
 import { useAuth } from './context/AuthContext';
-import EmployeeList from './pages/EmployeeList';
 
 function App() {
     const navigate = useNavigate();

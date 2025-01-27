@@ -1,63 +1,68 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { login as loginAPI } from '../services/api';
+import { login } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { TextField, Button, Paper, Typography, Box, Alert } from '@mui/material';
 
 export default function Login() {
   const navigate = useNavigate();
   const { login: authLogin } = useAuth();
-  const [formData, setFormData] = useState({
+  const [credentials, setCredentials] = useState({
     email: '',
     password: ''
   });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setCredentials(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError('');
+
     try {
-      const response = await loginAPI(formData);
-      console.log('Login response:', response);
-
-      if (response.success && response.data) {
-        const token = response.data.token;
-        const employeeData = response.data.employee;
-
-        localStorage.setItem('token', token);
+      const response = await login(credentials);
+      
+      if (response.token) {
+        // Store both token and employee ID
+        localStorage.setItem('token', response.token);
+        localStorage.setItem('employeeId', response.employee.id);
         
-        authLogin({
-          ...employeeData,
-          token
-        });
+        // Optional: Store other useful employee data
+        localStorage.setItem('employeeName', response.employee.name);
+        localStorage.setItem('employeeEmail', response.employee.email);
 
         toast.success('Login successful!');
-        navigate('/dashboard');
+        // Navigate to dashboard after successful login
+        navigate('/employee-dashboard');
       } else {
-        const errorMessage = response?.message || 'Login failed. Please try again.';
-        setError(errorMessage);
-        toast.error(errorMessage);
+        setError(response.message || 'Login failed');
+        toast.error(response.message || 'Login failed');
       }
     } catch (error) {
-      console.error('Login failed:', error);
-      setError('Login failed. Please try again.');
-      toast.error('Login failed. Please try again.');
+      setError(error.message || 'An error occurred during login');
+      toast.error(error.message || 'An error occurred during login');
+      console.error('Login error:', error);
+    } finally {
+      setLoading(false);
     }
-  };
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
   };
 
   return (
     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className="w-full max-w-md bg-white/80 backdrop-blur-lg rounded-2xl p-6 shadow-xl border border-white/40">
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold bg-blue-800 to-purple-600 bg-clip-text text-transparent">
-            Sign in to your account
-          </h2>
+          <h3 className="text-2xl font-bold bg-blue-600 bg-clip-text text-transparent">
+            Employee Login
+          </h3>
         </div>
 
         {error && (
@@ -69,40 +74,44 @@ export default function Login() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <input
-              id="email"
-              name="email"
               type="email"
               required
               className="w-full px-4 py-2.5 rounded-xl bg-white/50 border border-gray-200 
               text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 
               focus:ring-blue-500/30 focus:border-transparent transition duration-200"
-              placeholder="Email address"
-              value={formData.email}
-              onChange={handleChange}
+              placeholder="Email"
+              value={credentials.email}
+              onChange={(e) => setCredentials(prev => ({
+                ...prev,
+                email: e.target.value
+              }))}
             />
           </div>
+
           <div>
             <input
-              id="password"
-              name="password"
               type="password"
               required
               className="w-full px-4 py-2.5 rounded-xl bg-white/50 border border-gray-200 
               text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 
               focus:ring-blue-500/30 focus:border-transparent transition duration-200"
               placeholder="Password"
-              value={formData.password}
-              onChange={handleChange}
+              value={credentials.password}
+              onChange={(e) => setCredentials(prev => ({
+                ...prev,
+                password: e.target.value
+              }))}
             />
           </div>
 
           <button
             type="submit"
-            className="w-full px-4 py-2.5 bg-blue-800 to-purple-600 
+            disabled={loading}
+            className="w-full px-4 py-2.5 bg-blue-800  
             text-white rounded-xl hover:opacity-90 transition-all duration-200 
-            shadow-lg hover:shadow-blue-500/25 text-sm"
+            shadow-lg hover:shadow-blue-500/25 text-sm disabled:opacity-50"
           >
-            Sign in
+            {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
 

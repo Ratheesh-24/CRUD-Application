@@ -15,6 +15,29 @@ name      String
 email     String   @unique
 password  String?
 mobileNo  String   @unique
+firstName String?
+lastName  String?
+address   String?
+department String?
+designation String?
+dateOfJoining DateTime?
+emergencyContact String?
+bloodGroup String?
+linkedIn  String?
+profileImage String?
 createdAt DateTime @default(now())
 updatedAt DateTime @updatedAt
+timesheets Timesheet[] // Define the relation to Timesheet
+}
+
+
+model Timesheet {
+  id          Int      @id @default(autoincrement())
+  employeeId  Int
+  date        DateTime
+  hoursWorked Float
+  taskDetails String?
+
+  employee    Employee  @relation(fields: [employeeId], references: [id]) // Relation to Employee
+  @@index([employeeId])
 }

@@ -1,7 +1,8 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
     Dashboard as DashboardIcon,
-    People as PeopleIcon 
+    People as PeopleIcon,
+    Person as PersonIcon
 } from '@mui/icons-material';
 
 export default function Sidebar() {
@@ -9,6 +10,11 @@ export default function Sidebar() {
     const location = useLocation();
 
     const menuItems = [
+        {
+            text: 'Profile',
+            icon: <PersonIcon className="h-5 w-5" />,
+            path: '/profile'
+        },
         {
             text: 'Employee Dashboard',
             icon: <DashboardIcon className="h-5 w-5" />,
@@ -18,7 +24,13 @@ export default function Sidebar() {
             text: 'Employee List',
             icon: <PeopleIcon className="h-5 w-5" />,
             path: '/employee-list'
-        }
+        },
+        {
+            text: 'Timesheet',
+            icon: <PeopleIcon className="h-5 w-5" />,
+            path: '/timesheet'
+        },
+      
     ];
 
     return (

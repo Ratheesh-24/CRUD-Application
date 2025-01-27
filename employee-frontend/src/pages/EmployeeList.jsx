@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { PencilIcon, TrashIcon, PlusIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { PencilIcon, TrashIcon, PlusIcon } from '@heroicons/react/24/outline';
 import EmployeeForm from '../components/EmployeeForm';
 import Navbar from '../components/Navbar';
 import { getAllEmployees, deleteEmployee, updateEmployee, createEmployee, exportEmployeesCSV } from '../services/api';
 import { toast } from 'react-toastify';
+import { Alert, CircularProgress } from '@mui/material';
 
 export default function EmployeeList() {
   const [employees, setEmployees] = useState([]);
@@ -24,65 +25,63 @@ export default function EmployeeList() {
   const [itemsPerPage] = useState(6);
   const [pagination, setPagination] = useState({});
   const [filterBy, setFilterBy] = useState('all');
+  const [loading, setLoading] = useState(true);
+  const [params, setParams] = useState({
+    page: 1,
+    limit: 6,
+    sortBy: 'name',
+    sortOrder: 'asc',
+    search: '',
+    filterBy: 'all'
+  });
 
   const fetchEmployees = async () => {
     try {
-      let sortByField = 'name';
-      let sortDirection = 'asc';
-
-      // Handle different filter options
-      switch (filterBy) {
-        case 'name_asc':
-          sortByField = 'name';
-          sortDirection = 'asc';
-          break;
-        case 'name_desc':
-          sortByField = 'name';
-          sortDirection = 'desc';
-          break;
-        case 'recent':
-          sortByField = 'createdAt';
-          sortDirection = 'desc';
-          break;
-        case 'oldest':
-          sortByField = 'createdAt';
-          sortDirection = 'asc';
-          break;
-        default:
-          break;
+      setLoading(true);
+      setError(null);
+      const response = await getAllEmployees(params);
+      console.log('API Response:', response);
+      
+      if (!response || !response.success || !response.data) {
+        console.error('Invalid data structure received:', response);
+        setError('Invalid data received from server');
+        return;
       }
-
-      const response = await getAllEmployees({
-        page: currentPage,
-        limit: itemsPerPage,
-        sortBy: sortByField,
-        sortOrder: sortDirection,
-        search: searchTerm
-      });
-
-      if (response.success && response.data) {
-        setEmployees(response.data.employees);
-        const pagination = response.data.pagination;
-        
-        if (pagination) {
-          setTotalItems(pagination.total);
-          setTotalPages(pagination.pages);
-        }
-        setError('');
-      } else {
-        setError('No data received from server');
-        toast.error('Failed to fetch employees');
+      
+      const { employees, pagination } = response.data;
+      
+      if (!Array.isArray(employees)) {
+        console.error('Invalid employees data:', employees);
+        setError('Invalid employees data received');
+        return;
       }
-    } catch (err) {
-      console.error('Fetch error:', err);
-      setError('Failed to fetch employees');
-      toast.error('Failed to fetch employees');
+      
+      setEmployees(employees);
+      setTotalItems(pagination.total || 0);
+      setTotalPages(pagination.pages || 1);
+    } catch (error) {
+      console.error('Fetch error:', error);
+      setError(error.message || 'Failed to fetch employees');
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
+    console.log('Current params:', params); // Debug log
     fetchEmployees();
-  }, [filterBy, currentPage, itemsPerPage, searchTerm]);
+  }, [params]);
+
+  useEffect(() => {
+    setParams(prevParams => ({
+      ...prevParams,
+      page: 1, // Reset to first page when filter changes
+      filterBy: filterBy,
+      sortBy: sortField,
+      sortOrder: sortDirection,
+      search: searchTerm
+    }));
+  }, [filterBy, sortField, sortDirection, searchTerm]);
 
   const handleDelete = async (id) => {
     setDeleteConfirmation({ show: true, employeeId: id });
@@ -262,9 +261,9 @@ export default function EmployeeList() {
   const handleFormSubmit = async (formData) => {
     try {
         if (selectedEmployee) {
-            // Update existing employee
             console.log('Updating employee:', selectedEmployee.id, formData);
             const response = await updateEmployee(selectedEmployee.id, formData);
+            console.log('Update response:', response); // Debug log
             
             if (response.success) {
                 toast.success('Employee updated successfully');
@@ -275,9 +274,9 @@ export default function EmployeeList() {
                 toast.error(response.message || 'Failed to update employee');
             }
         } else {
-            // Create new employee
             console.log('Creating new employee:', formData);
             const response = await createEmployee(formData);
+            console.log('Create response:', response); // Debug log
             
             if (response.success) {
                 toast.success('Employee created successfully');
@@ -293,9 +292,25 @@ export default function EmployeeList() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <CircularProgress />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert severity="error" className="m-4">
+        {error}
+      </Alert>
+    );
+  }
+
   return (
     <div>
-      <div className="mb-6">
+      <div className="mb-6 ml-4">
         <h1 className="text-2xl font-bold text-gray-900">Employee Directory</h1>
         <p className="mt-1 text-sm text-gray-500">
           Manage your team members and their information
@@ -323,6 +338,7 @@ export default function EmployeeList() {
               className="px-4 py-2 bg-green-600 text-white rounded-lg 
                        hover:bg-green-700 transition-colors"
             >
+              
               Export to CSV
             </button>
 
@@ -360,7 +376,7 @@ export default function EmployeeList() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {employees.length > 0 ? (
+                {Array.isArray(employees) && employees.length > 0 ? (
                   employees.map((employee) => (
                     <tr key={employee.id} className="hover:bg-gray-50 transition-colors duration-200">
                       <td className="px-6 py-4 whitespace-nowrap w-1/4">
@@ -408,7 +424,7 @@ export default function EmployeeList() {
                 )}
               </tbody>
             </table>
-            {employees.length > 0 && (
+            {Array.isArray(employees) && employees.length > 0 && (
               <div className="px-6 py-4 flex items-center justify-between border-t border-gray-200">
                 <div className="flex-1 flex justify-between sm:hidden">
                   <button

@@ -1,41 +1,48 @@
 import axios from 'axios';
+import { data } from 'react-router-dom';
 
-// Get the API URL from environment variables
+// Get the API URL from environment variables, with fallback
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:10000/api';
-
-// Define the base URL for your API
-const BASE_URL = 'https://crud-application-a3g2.onrender.com/api'; // Add /api here
 
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL: BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+    baseURL: API_URL,
+    withCredentials: true, // Enable if using cookies
+    headers: {
+        'Content-Type': 'application/json',
+    },
 });
 
-// Add token to requests if available
+// Add request interceptor for better error handling
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
+    const token = localStorage.getItem('token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    console.log('API Request:', {
+        url: config.url,
+        method: config.method,
+        headers: config.headers
+    });
+    return config;
+}, (error) => {
+    console.error('Request error:', error);
+    return Promise.reject(error);
 });
 
 // Add response interceptor for better error handling
 api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.error('API Error Details:', {
-      endpoint: error.config.url,
-      method: error.config.method,
-      data: error.config.data,
-      response: error.response?.data,
-      status: error.response?.status
-    });
-    return Promise.reject(error);
-  }
+    (response) => response,
+    (error) => {
+        console.error('API Error:', {
+            url: error.config?.url,
+            method: error.config?.method,
+            status: error.response?.status,
+            data: error.response?.data,
+            message: error.message
+        });
+        return Promise.reject(error);
+    }
 );
 
 // API functions
@@ -87,13 +94,7 @@ export const getAllEmployees = async (params = {}) => {
             filterBy: params.filterBy || 'all'
         }).toString();
 
-        const response = await axios.get(
-            `${API_URL}/employees?${queryString}`,
-            {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-            }
-        );
-
+        const response = await api.get(`/employees?${queryString}`);
         return response.data;
     } catch (error) {
         console.error('Error fetching employees:', error);
@@ -196,6 +197,155 @@ export const exportEmployeesCSV = async () => {
     } catch (error) {
         console.error('Export error:', error);
         throw error;
+    }
+};
+
+//Timesheet Logic
+
+export const getAllTimesheets = async () => {
+    try {
+        const response = await axios.get(
+            `${API_URL}/timesheets`,
+            {
+                headers: { 
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                }
+                
+            }
+        );
+
+        console.log(response);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching timesheets:', error);
+        throw error;
+    }
+};
+
+export const createTimesheet = async (timesheetData) => {
+    try {
+        const response = await axios.post(
+            `${API_URL}/timesheets`,
+            timesheetData,
+            {
+                headers: { 
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.error('Error creating timesheet:', error);
+        throw error.response?.data || error;
+    }
+};
+
+export const updateTimesheet = async (id, timesheetData) => {
+    try {
+        // Ensure id is a number
+        const numericId = parseInt(id, 10);
+        if (isNaN(numericId)) {
+            throw new Error('Invalid timesheet ID');
+        }
+
+        const response = await axios.put(
+            `${API_URL}/timesheets/${numericId}`,
+            timesheetData,
+            {
+                headers: { 
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        if (error.response?.status === 404) {
+            return { success: false, error: 'Timesheet not found' };
+        }
+        if (error.response?.data) {
+            return error.response.data;
+        }
+        return { success: false, error: error.message };
+    }
+};
+
+export const deleteTimesheet = async (id) => {
+    try {
+        // Ensure id is a number
+        const numericId = parseInt(id, 10);
+        if (isNaN(numericId)) {
+            throw new Error('Invalid timesheet ID');
+        }
+
+        const response = await axios.delete(
+            `${API_URL}/timesheets/${numericId}`,
+            {
+                headers: { 
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        if (error.response?.status === 404) {
+            return { success: false, error: 'Timesheet not found' };
+        }
+        if (error.response?.data) {
+            return error.response.data;
+        }
+        return { success: false, error: error.message };
+    }
+};
+
+export const getProfile = async (employeeId) => {
+    try {
+        const response = await api.get(`/profile/${employeeId}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching profile:', {
+            message: error.message,
+            response: error.response?.data,
+            status: error.response?.status
+        });
+        throw error.response?.data || error;
+    }
+};
+
+export const updateProfile = async (employeeId, profileData) => {
+    try {
+        // Handle profile image separately if it's a File object
+        let formData;
+        if (profileData.profileImage instanceof File) {
+            formData = new FormData();
+            formData.append('profileImage', profileData.profileImage);
+            
+            // Append other profile data
+            Object.keys(profileData).forEach(key => {
+                if (key !== 'profileImage') {
+                    formData.append(key, profileData[key]);
+                }
+            });
+
+            const response = await api.put(`/profile/${employeeId}`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            return response.data;
+        } else {
+            // If no new image, send regular JSON
+            const response = await api.put(`/profile/${employeeId}`, profileData);
+            return response.data;
+        }
+    } catch (error) {
+        console.error('Error updating profile:', {
+            message: error.message,
+            response: error.response?.data,
+            status: error.response?.status
+        });
+        throw error.response?.data || error;
     }
 };
 

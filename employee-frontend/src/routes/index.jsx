@@ -3,6 +3,8 @@ import EmployeeList from '../pages/EmployeeList';
 import Dashboard from '../pages/EmployeeDashboard';
 import Login from '../pages/Login';
 import Register from '../pages/Register';
+import Timesheet from '../pages/Timesheet';
+import Profile from '../pages/Profile';
 
 export default function AppRoutes() {
     return (
@@ -12,6 +14,9 @@ export default function AppRoutes() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/employee-dashboard" element={<Dashboard />} />
+            <Route path="/timesheet" element={<Timesheet />} />
+            <Route path="/profile" element={<Profile />} />
+
 
         </Routes>
     );

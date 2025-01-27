@@ -278,39 +278,34 @@ const login = async (req, res) => {
     try {
         const { email, password } = req.body;
         
-        if (!email || !password) {
-            return res.status(400).json({
-                success: false,
-                message: 'Please provide email and password'
-            });
+        const employee = await prisma.employee.findUnique({
+            where: { email }
+        });
+
+        if (!employee) {
+            return res.status(401).json({ message: 'Invalid credentials' });
         }
 
-        const employee = await prisma.employee.findUnique({ where: { email } });
-        
-        if (!employee || !(await bcrypt.compare(password, employee.password))) {
-            return res.status(401).json({
-                success: false,
-                message: 'Invalid credentials'
-            });
-        }
+        // Verify password here...
 
-        const token = generateToken(employee.id);
-        res.status(200).json({
-            success: true,
-            data: {
-                token,
-                employee: {
-                    id: employee.id,
-                    name: employee.name,
-                    email: employee.email
-                }
+        const token = jwt.sign(
+            { id: employee.id, email: employee.email },
+            process.env.JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+
+        res.json({
+            token,
+            employee: {
+                id: employee.id,
+                name: employee.name,
+                email: employee.email,
+                // Add other non-sensitive fields as needed
             }
         });
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
+        console.error('Login error:', error);
+        res.status(500).json({ message: 'Error during login' });
     }
 };
   

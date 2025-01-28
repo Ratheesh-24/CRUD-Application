@@ -102,7 +102,7 @@ export default function Profile() {
     }
 
     return (
-        <Box className="p-6 max-w-4xl mx-auto">
+        <Box className="mx-6 p-6 max-w-4xl ">
             <Paper className="p-6">
                 {error && (
                     <Alert severity="error" className="mb-4">
@@ -129,7 +129,7 @@ export default function Profile() {
                     </Button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-4 mx-6">
                     <div className="flex flex-col items-center mb-6">
                         <div className="relative">
                             <Avatar

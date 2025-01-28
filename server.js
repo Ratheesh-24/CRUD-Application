@@ -28,10 +28,12 @@ app.use((req, res, next) => {
 const employeeRoutes = require('./src/routes/employeeRoutes');
 const timesheetRoutes = require('./src/routes/timesheetRoutes');
 const profileRoutes = require('./src/routes/profileRoutes');
+const projectRoutes = require('./src/routes/projectRoutes');
 
 app.use('/api/timesheets', timesheetRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api/projects', projectRoutes);
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'employee-frontend/dist')));

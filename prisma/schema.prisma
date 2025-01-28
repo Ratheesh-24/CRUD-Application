@@ -28,6 +28,7 @@ profileImage String?
 createdAt DateTime @default(now())
 updatedAt DateTime @updatedAt
 timesheets Timesheet[] // Define the relation to Timesheet
+projects    Project[] // Add this line to establish the relation
 }
 
 
@@ -39,5 +40,20 @@ model Timesheet {
   taskDetails String?
 
   employee    Employee  @relation(fields: [employeeId], references: [id]) // Relation to Employee
+  @@index([employeeId])
+}
+
+model Project {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  startDate   DateTime
+  endDate     DateTime
+  status      String    // 'Not Started', 'In Progress', 'Completed'
+  employeeId  Int
+  employee    Employee  @relation(fields: [employeeId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
   @@index([employeeId])
 }

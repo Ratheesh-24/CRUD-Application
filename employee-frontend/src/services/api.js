@@ -349,4 +349,50 @@ export const updateProfile = async (employeeId, profileData) => {
     }
 };
 
+// Add this function to your existing api.js file
+export const createProject = async (projectData) => {
+    try {
+        const response = await api.post('/projects', projectData);
+        return response.data;
+    } catch (error) {
+        console.error('Error creating project:', {
+            message: error.message,
+            response: error.response?.data,
+            status: error.response?.status
+        });
+        throw error.response?.data || error;
+    }
+};
+
+// Similarly, add other project-related functions
+export const getAllProjects = async () => {
+    try {
+        const response = await api.get('/projects');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching projects:', error);
+        throw error;
+    }
+};
+
+export const updateProject = async (id, projectData) => {
+    try {
+        const response = await api.put(`/projects/${id}`, projectData);
+        return response.data;
+    } catch (error) {
+        console.error('Error updating project:', error);
+        throw error.response?.data || error;
+    }
+};
+
+export const deleteProject = async (id) => {
+    try {
+        const response = await api.delete(`/projects/${id}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error deleting project:', error);
+        throw error.response?.data || error;
+    }
+};
+
 export default api; 

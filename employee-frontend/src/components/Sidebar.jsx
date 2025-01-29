@@ -30,6 +30,11 @@ export default function Sidebar() {
             icon: <PeopleIcon className="h-5 w-5" />,
             path: '/timesheet'
         },
+        {
+            text: 'Projects',
+            icon: <PeopleIcon className="h-5 w-5" />,
+            path: '/projects'
+        },
       
     ];
 
